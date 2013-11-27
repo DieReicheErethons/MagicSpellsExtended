@@ -16,6 +16,7 @@ public class TimeJump extends InstantSpell{
 	
 	private int confIntervall = 500; //500 milliseconds / 0.5 seconds
 	private int confJumpbacks = 20;
+	private int confMaxJumpbacks = 200;
 	
 	private long lastSave;
 	private Map<Player, ArrayList<Location>> players= new HashMap<Player, ArrayList<Location>>();
@@ -25,6 +26,7 @@ public class TimeJump extends InstantSpell{
 		
 		this.confIntervall = getConfigInt("intervall", 500);
 		this.confJumpbacks = getConfigInt("jumpbacks", 20);
+		this.confMaxJumpbacks = getConfigInt("max-jumpbacks", 200);
 		
 		setupScheduler();
 	}
@@ -34,8 +36,13 @@ public class TimeJump extends InstantSpell{
 		ArrayList<Location> locations = players.get(player);
 		
 		if(locations != null){
-			player.teleport(locations.get(0));
-		}
+			if(this.confJumpbacks <= locations.size()){
+				player.teleport(locations.get(locations.size() - this.confJumpbacks));
+				locations.subList(locations.size() - this.confJumpbacks, locations.size()).clear();
+			} else {
+				player.teleport(locations.get(0));
+			}
+		} 
 		
 		return PostCastAction.HANDLE_NORMALLY;
 	}
@@ -46,7 +53,7 @@ public class TimeJump extends InstantSpell{
 			public void run() {
 				if(lastSave + confIntervall < System.currentTimeMillis()){
 					for(Player player : Bukkit.getOnlinePlayers()){
-						if(players.get(player) != null){
+						if(players.get(player) == null){
 							ArrayList<Location> locations = new ArrayList<Location>();
 							
 							locations.add(player.getLocation());
@@ -57,7 +64,7 @@ public class TimeJump extends InstantSpell{
 							
 							locations.add(player.getLocation());
 							
-							if(locations.size() > confJumpbacks){
+							if(locations.size() > confMaxJumpbacks){
 								locations.remove(0);
 							}
 						}
