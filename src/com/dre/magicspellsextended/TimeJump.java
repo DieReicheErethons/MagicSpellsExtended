@@ -5,14 +5,18 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.entity.PlayerDeathEvent;
 
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.InstantSpell;
 import com.nisovin.magicspells.util.MagicConfig;
 
-public class TimeJump extends InstantSpell{
+public class TimeJump extends InstantSpell implements Listener{
 	
 	private int confIntervall = 500; //500 milliseconds / 0.5 seconds
 	private int confJumpbacks = 20;
@@ -28,6 +32,8 @@ public class TimeJump extends InstantSpell{
 		this.confJumpbacks = getConfigInt("jumpbacks", 20);
 		this.confMaxJumpbacks = getConfigInt("max-jumpbacks", 200);
 		
+		MagicSpells.registerEvents(this);
+		
 		setupScheduler();
 	}
 
@@ -39,12 +45,15 @@ public class TimeJump extends InstantSpell{
 			if(this.confJumpbacks <= locations.size()){
 				player.teleport(locations.get(locations.size() - this.confJumpbacks));
 				locations.subList(locations.size() - this.confJumpbacks, locations.size()).clear();
+				player.sendMessage(ChatColor.GREEN + "~~SWUSH~~");
+				return PostCastAction.HANDLE_NORMALLY;
 			} else {
-				player.teleport(locations.get(0));
+				player.sendMessage(ChatColor.RED + "Zeitreise nicht möglich!");
+				return PostCastAction.NO_REAGENTS;
 			}
 		} 
 		
-		return PostCastAction.HANDLE_NORMALLY;
+		return PostCastAction.NO_REAGENTS;
 	}
 	
 	private void setupScheduler(){
@@ -72,5 +81,14 @@ public class TimeJump extends InstantSpell{
 				}
 			}
 		}, 0, 5);
+	}
+	
+	@EventHandler()
+	private void onPlayerDeath(PlayerDeathEvent event){
+		Player player = event.getEntity();
+		if(players.get(player) != null){
+			ArrayList<Location> locations = players.get(player);
+			locations.clear();
+		}
 	}
 }
