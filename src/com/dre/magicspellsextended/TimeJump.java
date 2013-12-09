@@ -11,6 +11,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 
 import com.nisovin.magicspells.MagicSpells;
 import com.nisovin.magicspells.spells.InstantSpell;
@@ -86,6 +87,15 @@ public class TimeJump extends InstantSpell implements Listener{
 	@EventHandler()
 	private void onPlayerDeath(PlayerDeathEvent event){
 		Player player = event.getEntity();
+		if(players.get(player) != null){
+			ArrayList<Location> locations = players.get(player);
+			locations.clear();
+		}
+	}
+	
+	@EventHandler()
+	private void onPlayerJoin(PlayerJoinEvent event){
+		Player player = event.getPlayer();
 		if(players.get(player) != null){
 			ArrayList<Location> locations = players.get(player);
 			locations.clear();
